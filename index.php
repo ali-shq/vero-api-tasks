@@ -1,6 +1,14 @@
 <?php
+
+error_reporting(E_ALL);
+
 require_once 'Autoloader.php';
 Autoloader::register();
+
+var_dump(Utils::snakeCase(['aBccdS', 'a']));
+
+die();
+
 new Api();
 
 class Api
