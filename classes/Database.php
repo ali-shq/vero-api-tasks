@@ -4,30 +4,79 @@ class Database
 {
 	const name = 'testDb';
 
-	private $db;
+	static private $db;
 
-	public function init()
+
+	
+	public function __construct()
 	{
-		$this->db = new PDO('sqlite:'.self::name.'.db', '', '', [
+		self::$db = new PDO('sqlite:'.self::name.'.db', '', '', [
 			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 		]);
+
 		$this->createTables();
-		$stmt = $this->db->query('SELECT 1 FROM construction_stages LIMIT 1');
+		$stmt = self::$db->query('SELECT 1 FROM construction_stages LIMIT 1');
 		if (!$stmt->fetchColumn()) {
 			$this->loadData();
 		}
-		return $this->db;
+	}
+
+	public function init() 
+	{
+		return self::$db;
 	}
 
 	private function createTables()
 	{
 		$sql = file_get_contents('database/structure.sql');
-		$this->db->exec($sql);
+		self::$db->exec($sql);
 	}
 
 	private function loadData()
 	{
 		$sql = file_get_contents('database/data.sql');
-		$this->db->exec($sql);
+		self::$db->exec($sql);
 	}
+
+
+	static public function execQuery(string $sql, array $params = []) 
+	{
+		try {
+
+			$stmt = self::$db->prepare($sql);
+
+			$stmt->execute($params);
+	
+			return $stmt->fetchAll(PDO::FETCH_ASSOC);
+	
+		} catch (PDOException $e) {
+
+			//we need to do something about the initial message
+			//ErrorLog::log($e);//for example
+			throw new ServerError($e->getMessage(), StatusCode::PDO_EXCEPTION, $e);
+		}
+
+	}
+
+	static public function getLastInsertId() 
+	{
+		return self::$db->lastInsertId();
+	}
+
+	static public function addParam(string &$sql_str, $value, ?array &$params) 
+	{
+
+		$params ??= [];
+
+		$index = count($params);
+
+		$key = "param_$index";
+
+		$params[$key] = $value;
+
+		$sql_str .= ":$key";
+
+	}
+
+
 }

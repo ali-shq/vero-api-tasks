@@ -7,8 +7,13 @@ class StatusCode
 	const SUCCESSFULLY_ADDED = 201;
 
 	const REQUEST_ERROR = 400;
+	const VALIDATION_ERROR = 401;
 	const NOT_FOUND_ERROR = 404;
 
 	const SERVER_ERROR = 500;
+	const PDO_EXCEPTION = 580;
+	const BAD_FILTER = 581;
+	const BAD_COLUMN = 582;
+	
 
 }
