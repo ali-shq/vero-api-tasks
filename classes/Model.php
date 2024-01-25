@@ -3,13 +3,15 @@
 abstract class Model
 {
 
+	private $tableName;
+
 	private $allColumnSet;
 
 	public $allProperties = [];
 
 	public $id = 'id';
 
-	private $tableName;
+	public $overWriteGetValues = [];
 
 	const ALL_COLUMNS = '*';
 
@@ -35,7 +37,6 @@ abstract class Model
 
 		$data = Database::execQuery($query, $params);
 
-
 		return $this->translateDBData($data);
 	}
 
@@ -48,7 +49,7 @@ abstract class Model
 
 		if ($data == []) {
 
-			throw new RequestError(GetMessage::msg(Message::NOT_FOUND_ERROR, $id, __CLASS__));
+			throw new RequestError(GetMessage::msg(Message::NOT_FOUND_ERROR, $id, self::getResourceName($this)), StatusCode::NOT_FOUND_ERROR);
 
 		}
 
@@ -60,23 +61,43 @@ abstract class Model
 
 	public function update(array $request, int $id): array
 	{
+
+		unset($request[$this->id]);
+
+		$this->checkValidations($request, $id);
+
+
 		if ($request == []) {
 
-			throw new ServerError(GetMessage::msg(Message::EMPTY_UPDATE, __CLASS__));
+			throw new RequestError(GetMessage::msg(Message::EMPTY_UPDATE, self::getResourceName($this)));
 
 		}
 
-		$this->checkValidations($request, true);
 
 		$params = [];
 
 		$query = $this->prepareUpdate($request, $id, $params);
 
-		Database::execQuery($query, $params);
+		$data = $this->translateDBData(Database::execQuery($query, $params));
 
-		return $this->getById($id);
+		if ($data == []) {
+
+			throw new RequestError(GetMessage::msg(Message::NOT_FOUND_ERROR, $id, self::getResourceName($this)), StatusCode::NOT_FOUND_ERROR);
+
+		}
+
+		return $data;
+
+		//return $this->getById($id);
 	}
 
+
+	static function getResourceName (Model $model) 
+	{
+
+		return str_replace('model', '', strtolower(get_class($model)));
+
+	}
 
 
 	protected function prepareUpdate(array $request, int $id, array &$params = []): string
@@ -87,9 +108,11 @@ abstract class Model
 
 		foreach ($request as $key => $value) {
 
-			$this->ensureColumnExists($key);
+			$col = Utils::snakeCase($key);
 
-			$query .= "\"$key\" = ";
+			$this->ensureColumnExists($col);
+
+			$query .= "\"$col\" = ";
 
 			Database::addParam($query, $value, $params);
 
@@ -100,7 +123,7 @@ abstract class Model
 		
 		Database::addParam($query, $id, $params);
 		
-		return $query;
+		return $query.' returning *';
 
 	}
 
@@ -116,7 +139,7 @@ abstract class Model
 
 		}
 
-		$query .= '('.$this->prepareColumns(array_keys($request)).') values (';
+		$query .= '('.$this->prepareColumns(array_keys($request)).') VALUES(';
 
 
 		foreach ($request as $value) {
@@ -126,29 +149,49 @@ abstract class Model
 			$query .= ',';
 		}
 
-		$query = rtrim($query, ',').')';
+		$query = rtrim($query, ',').') returning *';
 		
 		return $query;
 	}
 
+	public function deleteById(int $id) 
+	{
+
+		$where = [$this->id => $id];
+
+		return $this->delete($where);
+
+	}
+
+	public function delete(array $where) 
+	{
+		$params = [];
+
+		$query = 'delete from "'.$this->tableName.'" '.$this->prepareWhere($where, $params);
+
+		return Database::execQuery($query, $params);
+
+	}
 
 	public function insert(array $request): array
 	{
 	
 		$this->checkValidations($request);
 
+		unset($request[$this->id]);
+
 		$params = [];
 
 		$query = $this->prepareInsert($request, $params);
 
-		Database::execQuery($query, $params);
+		return $this->translateDBData(Database::execQuery($query, $params));
 
-		return $this->getById(Database::getLastInsertId());
+		//return $this->getById(Database::getLastInsertId());
 	}
 
 
 
-	protected function checkValidations(array $request, bool $is_update = false) 
+	protected function checkValidations(array $request, ?int $id = null) 
 	{
 
 
@@ -159,7 +202,7 @@ abstract class Model
 			
 		if (!isset($this->allColumnSet[$column])) {
 
-			throw new ServerError(GetMessage::msg($msg, $column, __CLASS__), $code);
+			throw new ServerError(GetMessage::msg($msg, $column, get_class($this)), $code);
 
 		}
 	}
@@ -176,12 +219,14 @@ abstract class Model
 
 		foreach ($columns as $column) {
 
-			$this->ensureColumnExists($column);
+			$col = Utils::snakeCase($column);
 
-			$column_sql .= "\"$column\" ,";
+			$this->ensureColumnExists($col);
+
+			$column_sql .= "\"$col\", ";
 		}
 
-		return rtrim($column_sql);
+		return rtrim($column_sql, ', ');
 	}
 
 
@@ -204,15 +249,14 @@ abstract class Model
 
 			$this->ensureColumnExists($cleared_filter, Message::BAD_FILTER, StatusCode::BAD_FILTER);
 
-			//adding quotes (") to the column
-			$filter = str_replace($cleared_filter, "\"$cleared_filter\"", $filter);
-
-
 			//default operator is =, if there was no other operator we add =
 			if (trim($filter) === $cleared_filter) {
 
 				$filter .= " =";
 			}
+
+			//adding quotes (") to the column
+			$filter = str_replace($cleared_filter, "\"$cleared_filter\"", $filter);
 
 			$where_sql .= "$filter ";
 
@@ -230,10 +274,19 @@ abstract class Model
 
 		$new_data = [];
 
-		foreach ($vars as $name) {
+		foreach ($data as $ind => $row) {
 
-			$new_data[$name] = $data[Utils::snakeCase($name)] ?? null;
+			foreach ($vars as $name) {
+
+				$callback = $this->overWriteGetValues[$name] ?? null;
+
+				$value = $row[Utils::snakeCase($name)] ?? null;
+
+				$new_data[$ind][$name] = $callback ? $callback($value) : $value;
+			}
+	
 		}
+
 
 		return $new_data;
 	}

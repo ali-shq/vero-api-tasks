@@ -44,15 +44,32 @@ abstract class Controller
 	}
 
 
-	protected function delete() 
+	protected function delete($request) 
 	{
-		throw new ServerError('Not implemented');
+		$id = $request[$this->model->id] ?? null;
+
+		if (!isset($id)) {
+
+			throw new RequestError(Message::NOT_FOUND_ROUTE, StatusCode::NOT_FOUND_ERROR);
+			
+		}
+
+		$this->model->deleteById($id);
+
+		return [];
 	}
 
 
 	protected function edit(array $request) : array 
 	{
 		$id = $request[$this->model->id] ?? null;
+
+		if (!isset($id)) {
+
+			throw new RequestError(Message::NOT_FOUND_ROUTE, StatusCode::NOT_FOUND_ERROR);
+			
+		}
+
 
 		return $this->model->update($request, $id);
 

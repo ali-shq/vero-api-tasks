@@ -10,7 +10,7 @@ class Api
 
 	const WILD_CARDS = [
 		//':any' => '([^/]+)',
-		':num' => '(/[0-9]+)?',
+		':num' => '/([0-9]+)?',
 	];
 
 
@@ -60,6 +60,14 @@ class Api
 
 			
 			foreach (self::getAllRoutes() as $controller => $route) {
+
+				if (strtolower($route) == $uri) {
+
+					$controller = new $controller();
+
+					return $controller->getResponse($httpVerb, $request);
+				
+				}
 
 
 				foreach (self::WILD_CARDS as $params) {

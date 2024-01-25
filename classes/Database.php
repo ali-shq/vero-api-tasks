@@ -43,7 +43,9 @@ class Database
 
 			$stmt = self::$db->prepare($sql);
 
+			
 			$stmt->execute($params);
+
 	
 			return $stmt->fetchAll(PDO::FETCH_ASSOC);
 	
@@ -72,7 +74,7 @@ class Database
 
 		$params[$key] = $value;
 
-		$sql_str .= ":$key";
+		$sql_str .= " :$key ";
 
 	}
 

@@ -65,4 +65,13 @@ class Utils
 		echo json_encode($data, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT);	
 	}
 
+
+	static function standartDateTime(?string $datetime) 
+	{
+
+
+		return $datetime ? date(DATE_ATOM, strtotime($datetime)) : null;
+
+	}
+
 }
