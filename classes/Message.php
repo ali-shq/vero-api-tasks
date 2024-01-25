@@ -5,7 +5,8 @@ class Message
 
 	const SUCCESS = 'Ok';
 
-	const VALIDATION_ERROR = 'There are errors in the request';
+	const VALIDATION_ERROR = 'There are %s error(s) in the request';
+	const REQUIRED_FIELD = 'The field: %s is required';
 	const NOT_FOUND_ERROR = 'The requested resource was not found, for value %s and resource %s';
 	const NOT_FOUND_ROUTE = 'No such route';
 	const NOT_FOUND_METHOD = 'No such method for verb: %s and class: %s';

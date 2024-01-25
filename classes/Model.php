@@ -7,11 +7,20 @@ abstract class Model
 
 	private $allColumnSet;
 
+
 	public $allProperties = [];
 
 	public $id = 'id';
 
-	public $overWriteGetValues = [];
+
+
+	protected $overWriteGetValues = [];
+
+	protected $defaultValues = [];
+
+	protected $validations = [];
+
+
 
 	const ALL_COLUMNS = '*';
 
@@ -128,10 +137,12 @@ abstract class Model
 	}
 
 
-	protected function prepareInsert(array $request, &$params = []) 
+	protected function prepareInsert(array $request, &$params = []): string 
 	{
-	
+
+		
 		$query = 'insert into "'.$this->tableName.'" ';
+
 
 		if ($request == []) {
 
@@ -154,27 +165,34 @@ abstract class Model
 		return $query;
 	}
 
-	public function deleteById(int $id) 
+
+	public function deleteById(int $id): void
 	{
 
 		$where = [$this->id => $id];
 
-		return $this->delete($where);
+		$this->delete($where);
 
 	}
 
-	public function delete(array $where) 
+
+
+	public function delete(array $where): void
 	{
+
 		$params = [];
 
 		$query = 'delete from "'.$this->tableName.'" '.$this->prepareWhere($where, $params);
 
-		return Database::execQuery($query, $params);
+		Database::execQuery($query, $params);
 
 	}
 
-	public function insert(array $request): array
+
+	public function insert(array $request) : array
 	{
+		
+		$request += $this->defaultValues;
 	
 		$this->checkValidations($request);
 
@@ -193,7 +211,32 @@ abstract class Model
 
 	protected function checkValidations(array $request, ?int $id = null) 
 	{
+		$error_count = 0;
 
+		$error_message = '';
+		
+		foreach ($this->validations as $validation) {
+
+			$validation_error = $validation($request, $id);
+
+			if ($validation_error === null) {
+
+				continue;
+
+			}
+
+			$error_count++;
+
+			$error_message .= $validation_error."\n";
+
+		}
+
+
+
+		if ($error_count) {
+
+			throw new ValidationError(GetMessage::msg(Message::VALIDATION_ERROR, $error_count)."\n".$error_message);
+		}
 
 	}
 
