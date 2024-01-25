@@ -2,7 +2,7 @@
 
 class Autoloader
 {
-	const FOLDERS = ['classes', 'classes/Exception'];
+	const FOLDERS = ['classes', 'classes/Exceptions', 'classes/Controllers', 'classes/Models'];
 
 
 	public static function register()
@@ -14,12 +14,12 @@ class Autoloader
 
 				$file = "$folder/{$class}.php";
 				if (file_exists($file)) {
-					require_once $file;
+					require $file;
 					return true;
-				}
-				return false;
-	
+				}			
 			}
+			return false;
+	
 
 		});
 	}

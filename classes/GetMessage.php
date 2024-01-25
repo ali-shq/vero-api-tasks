@@ -11,4 +11,12 @@ class GetMessage
 
 	}
 
+	static function getServerErrorMessage(Throwable $e) 
+	{
+		$development_msg = $e->getMessage()."\nfile:".$e->getFile()."\nline:".$e->getLine();
+
+		return Env::$is_deveplopment ? $development_msg : Message::SERVER_ERROR;
+
+	}
+
 }

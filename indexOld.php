@@ -1,15 +1,27 @@
 <?php
 
-class Routes
-{
-	
-	static $routes = [
-						'constructionStages',
-						];
 
+require_once 'Autoloader.php';
+Autoloader::register();
+
+var_dump(Utils::snakeCase(['aBccdS', 'a']));
+
+die();
+
+new Api();
+
+class Api
+{
+	private static $db;
+
+	public static function getDb()
+	{
+		return self::$db;
+	}
 
 	public function __construct()
 	{
+		self::$db = (new Database())->init();
 
 		$uri = strtolower(trim((string)$_SERVER['PATH_INFO'], '/'));
 		$httpVerb = isset($_SERVER['REQUEST_METHOD']) ? strtolower($_SERVER['REQUEST_METHOD']) : 'cli';
@@ -18,7 +30,6 @@ class Routes
 			':any' => '[^/]+',
 			':num' => '[0-9]+',
 		];
-
 		$routes = [
 			'get constructionStages' => [
 				'class' => 'ConstructionStages',

@@ -9,6 +9,7 @@ class StatusCode
 	const REQUEST_ERROR = 400;
 	const VALIDATION_ERROR = 401;
 	const NOT_FOUND_ERROR = 404;
+	const METHOD_NOT_SUPPORTED = 480;
 
 	const SERVER_ERROR = 500;
 	const PDO_EXCEPTION = 580;

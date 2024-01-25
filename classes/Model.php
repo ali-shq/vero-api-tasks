@@ -22,7 +22,7 @@ abstract class Model
 
 		$this->allColumnSet = array_flip(array_map(Utils::snakeCase(...), $this->allProperties));
 
-		$this->tableName = Utils::snakeCase(__CLASS__);
+		$this->tableName = Utils::snakeCase(str_replace('Model', '', get_class($this)));
 	}
 
 
@@ -31,9 +31,10 @@ abstract class Model
 	{
 		$params = [];
 
-		$qurey = 'select ' . $this->prepareColumns($columns) . ' from "' . $this->tableName . '"' . $this->prepareWhere($where, $params);
+		$query = 'select ' . $this->prepareColumns($columns) . ' from "' . $this->tableName . '"' . $this->prepareWhere($where, $params);
 
-		$data = Database::execQuery($qurey, $params);
+		$data = Database::execQuery($query, $params);
+
 
 		return $this->translateDBData($data);
 	}
@@ -69,6 +70,18 @@ abstract class Model
 
 		$params = [];
 
+		$query = $this->prepareUpdate($request, $id, $params);
+
+		Database::execQuery($query, $params);
+
+		return $this->getById($id);
+	}
+
+
+
+	protected function prepareUpdate(array $request, int $id, array &$params = []): string
+	{
+
 		$query = 'update "'.$this->tableName.'" set ';
 
 
@@ -86,17 +99,15 @@ abstract class Model
 		$query = rtrim($query, ',') . " where $this->id = ";
 		
 		Database::addParam($query, $id, $params);
+		
+		return $query;
 
-		Database::execQuery($query, $params);
-
-		return $this->getById($id);
 	}
+
 
 	protected function prepareInsert(array $request, &$params = []) 
 	{
-
-		$params = [];
-
+	
 		$query = 'insert into "'.$this->tableName.'" ';
 
 		if ($request == []) {

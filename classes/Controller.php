@@ -21,66 +21,97 @@ abstract class Controller
 							self::PATCH => 'edit',
 						];
 
-	const NOT_FOUND_ROUTE = 'No such route';
-
-	protected function get() {}
-
-	protected function add() {}
-
-	protected function delete() {}
-
-	protected function edit() {}
 
 
-	public function __construct()
+
+	protected function get(array $request) : array
 	{
+		$id = $request[$this->model->id] ?? null;
 
-		$uri = strtolower(trim((string)$_SERVER['PATH_INFO'], '/'));
-		$httpVerb = isset($_SERVER['REQUEST_METHOD']) ? strtolower($_SERVER['REQUEST_METHOD']) : 'cli';
+		if (isset($id)) {
 
-		$wildcards = [
-			':any' => '[^/]+',
-			':num' => '[0-9]+',
-		];
+			return $this->model->getById($id);
 
-		$routes = [
-			'get constructionStages' => [
-				'class' => 'ConstructionStages',
-				'method' => 'getAll',
-			],
-			'get constructionStages/(:num)' => [
-				'class' => 'ConstructionStages',
-				'method' => 'getSingle',
-			],
-			'post constructionStages' => [
-				'class' => 'ConstructionStages',
-				'method' => 'post',
-				'bodyType' => 'ConstructionStagesCreate'
-			],
-		];
+		}
 
-		$response = [
-			'error' => 'No such route',
-		];
+		return $this->model->get();
+	}
 
-		if ($uri) {
 
-			foreach ($routes as $pattern => $target) {
-				$pattern = str_replace(array_keys($wildcards), array_values($wildcards), $pattern);
-				if (preg_match('#^'.$pattern.'$#i', "{$httpVerb} {$uri}", $matches)) {
-					$params = [];
-					array_shift($matches);
-					if ($httpVerb === 'post') {
-						$data = json_decode(file_get_contents('php://input'));
-						$params = [new $target['bodyType']($data)];
-					}
-					$params = array_merge($params, $matches);
-					$response = call_user_func_array([new $target['class'], $target['method']], $params);
-					break;
-				}
+	protected function add(array $request) : array 
+	{
+		return $this->model->insert($request);
+	}
+
+
+	protected function delete() 
+	{
+		throw new ServerError('Not implemented');
+	}
+
+
+	protected function edit(array $request) : array 
+	{
+		$id = $request[$this->model->id] ?? null;
+
+		return $this->model->update($request, $id);
+
+	}
+
+	public function getResponse($httpVerb, $request, $key = null) : void
+	{
+		try {
+
+			$method = self::VERB_TO_METHOD[$httpVerb] ?? null;
+
+			if (!isset($method)) {
+
+				throw new ServerError(GetMessage::msg(Message::NOT_FOUND_METHOD, $httpVerb, __CLASS__));
+
 			}
 
-			echo json_encode($response, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT);
+			if (isset($key)) {
+
+				$request[$this->model->id] = $key;
+
+			}
+
+			$response = new Response($this->$method($request));
+
+		} catch (ServerError $e) {
+
+			$response = new ErrorResponse(GetMessage::getServerErrorMessage($e));
+
+			http_response_code($e->getCode());
+			
+		} catch (ApplicationError $e) {
+
+			$response = new ErrorResponse($e->getMessage());
+
+			http_response_code($e->getCode());
+			
+		} catch (Throwable $e) {
+
+			http_response_code(StatusCode::SERVER_ERROR);
+
+			$response = new ErrorResponse(GetMessage::getServerErrorMessage($e));
+	
+		}
+
+		
+		Utils::echoJson($response);
+	}
+
+
+	public function __construct(protected ?Model $model = null)
+	{
+
+		$model_class = str_replace('Controller', 'Model', get_class($this));
+
+		if (class_exists($model_class)) {
+
+			$this->model = new $model_class();
+
 		}
 	}
 }

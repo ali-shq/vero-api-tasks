@@ -3,12 +3,7 @@
 class Utils
 {
 			
-	/**
-	 * snakeCase
-	 *
-	 * @param  mixed $str
-	 * @return string
-	 */
+	
 	static function snakeCase(array|string $str) : string|array 
 	{
 		
@@ -23,11 +18,11 @@ class Utils
 
 		$chars = mb_str_split($str);
 
-		foreach ($chars as $char) {
+		foreach ($chars as $ind => $char) {
 
 			$lower_case = strtolower($char);
 
-			$new_str .= ($char != $lower_case ? "_$lower_case" : $char);
+			$new_str .= ($ind != 0 && $char != $lower_case ? "_$lower_case" : $lower_case);
 
 		}
 
@@ -57,6 +52,17 @@ class Utils
 
 	}
 
+	static function captalize(string $str) : string 
+	{
+		$chars = mb_str_split($str);
+		$chars[0] = mb_strtoupper($chars[0]);
+		return implode('', $chars);
+	}
+
 	
+	static function echoJson($data) 
+	{
+		echo json_encode($data, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT);	
+	}
 
 }

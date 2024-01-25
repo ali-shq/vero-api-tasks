@@ -8,31 +8,29 @@ class Database
 
 
 	
-	public function __construct()
+
+	static function init() 
 	{
 		self::$db = new PDO('sqlite:'.self::name.'.db', '', '', [
 			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 		]);
 
-		$this->createTables();
+		self::createTables();
 		$stmt = self::$db->query('SELECT 1 FROM construction_stages LIMIT 1');
 		if (!$stmt->fetchColumn()) {
-			$this->loadData();
+			self::loadData();
 		}
-	}
 
-	public function init() 
-	{
 		return self::$db;
 	}
 
-	private function createTables()
+	private static function createTables()
 	{
 		$sql = file_get_contents('database/structure.sql');
 		self::$db->exec($sql);
 	}
 
-	private function loadData()
+	private static function loadData()
 	{
 		$sql = file_get_contents('database/data.sql');
 		self::$db->exec($sql);
