@@ -48,11 +48,7 @@ abstract class Controller
 	{
 		$id = $request[$this->model->id] ?? null;
 
-		if (!isset($id)) {
-
-			throw new RequestError(Message::NOT_FOUND_ROUTE, StatusCode::NOT_FOUND_ERROR);
-			
-		}
+		$this->validateIdWasSent($id);
 
 		$this->model->deleteById($id);
 
@@ -64,14 +60,20 @@ abstract class Controller
 	{
 		$id = $request[$this->model->id] ?? null;
 
+		$this->validateIdWasSent($id);
+
+		return $this->model->update($request, $id);
+
+	}
+	
+
+	protected function validateIdWasSent($id) : void
+	{
 		if (!isset($id)) {
 
 			throw new RequestError(Message::NOT_FOUND_ROUTE, StatusCode::NOT_FOUND_ERROR);
 			
 		}
-
-
-		return $this->model->update($request, $id);
 
 	}
 

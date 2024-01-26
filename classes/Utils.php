@@ -70,8 +70,40 @@ class Utils
 	{
 
 
-		return $datetime ? date(DATE_ATOM, strtotime($datetime)) : null;
+		if (!$datetime) {
 
+			return null;
+
+		}
+
+		$format = Env::$dateTimeFormat;//or DATE_ATOM if we will leave it ISO
+
+		$dateTime =	date_create_from_format($format, $datetime);
+
+		return $dateTime ? $dateTime->format($format) : date($format, strtotime($datetime));
+
+	}
+
+
+	static function dateDiffInHours(?string $endDateTime, ?string $startDateTime, string $dateFormat = null) : ?int
+	{
+		if ($endDateTime === null || $startDateTime === null) {
+			
+			return null;
+			
+		}
+		
+		
+		if ($dateFormat === null) {
+			
+			$dateFormat = Env::$dateTimeFormat;
+			
+		}
+
+
+		$diff = date_diff(date_create_from_format($dateFormat, $endDateTime), date_create_from_format($dateFormat, $startDateTime));
+
+		return ($diff->days * 24 + $diff->h);
 	}
 
 }

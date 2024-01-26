@@ -53,7 +53,6 @@ abstract class Model
 
 	public function getById(int $id) : array 
 	{
-
 		$data = $this->get([$this->id => $id]);
 
 		if ($data == []) {
@@ -192,7 +191,7 @@ abstract class Model
 	public function insert(array $request) : array
 	{
 		
-		$request += $this->defaultValues;
+		$this->addDefaultValues($request);
 	
 		$this->checkValidations($request);
 
@@ -208,8 +207,22 @@ abstract class Model
 	}
 
 
+	public function addDefaultValues(array &$request) : void
+	{
 
-	protected function checkValidations(array $request, ?int $id = null) 
+		$defaults = [];
+
+		foreach ($this->defaultValues as $key => $value) {
+	
+			$defaults[$key] = is_callable($value) ? $value($request) : $value;
+
+		}
+
+		$request += $defaults;
+
+	}
+
+	public function checkValidations(array $request, ?int $id = null) 
 	{
 		$error_count = 0;
 
@@ -311,7 +324,9 @@ abstract class Model
 		return substr($where_sql, 0, -strlen(" and "));
 	}
 
-	private function translateDBData(array $data): array
+
+
+	protected function translateDBData(array $data): array
 	{
 		$vars = $this->allProperties;
 
