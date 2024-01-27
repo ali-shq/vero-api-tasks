@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Validation a class used to validate records, by a custom provided closure
+ * in case of failure a custom message is given back.
+ * The class contains a number of static functions also that generate pre-defined Validation objects
+ * for common use cases like required field or regex validations
+ */
 class Validation
 {
 		
@@ -14,15 +20,15 @@ class Validation
 	
 	/**
 	 * __invoke
+	 * 
+	 * calling of the validation, the validate Closure is called on the record
+	 * if no error is found null is returned, otherwise a string with the error
+	 * message is returned.
+	 * The message itself can be a Closure called on the record or a predefined string
 	 *
 	 * @param  array $record
 	 * @param  int $id
 	 * @return string|null
-	 * 
-	 * calling of the validation, the isValid Closure is called on the record
-	 * if no error is found null is returned, otherwise a string with the error
-	 * message is returned.
-	 * The message itself can be a Closure called on the record or a predefined string
 	 */
 	public function __invoke(array $record, ?int $id = null) : ?string
 	{
@@ -43,34 +49,34 @@ class Validation
 	/**
 	 * generateRequired
 	 *
-	 * @param  string|array $column the field(s) that is/are required to be not null and not empty strings
+	 * @param  string|array $field the field(s) that is/are required to be not null and not empty strings
 	 * @return Validation|array the Validation(s) that validate that the field(s) have values
 	 * 
 	 */
-	static public function generateRequired(string|array $column) :array|Validation 
+	static public function generateRequired(string|array $field) :array|Validation 
 	{
 
-		if (is_array($column)) {
+		if (is_array($field)) {
 			
-			return array_map((__METHOD__)(...), $column);
+			return array_map((__METHOD__)(...), $field);
 			
 		}
 
 		
-		$callable = function($record, $id) use ($column) {
+		$callable = function($record, $id) use ($field) {
 
-			if (isset($id) && !array_key_exists($column, $record)) {
+			if (isset($id) && !array_key_exists($field, $record)) {
 				
 				return true;//the field is not sent but we are in update case so it is fine
 
 			}
 
-			return isset($record[$column]) && $record[$column] !== '';
+			return isset($record[$field]) && $record[$field] !== '';
 
 		};
 
 
-		return new Validation($callable, GetMessage::msg(Message::REQUIRED_FIELD, $column));
+		return new Validation($callable, GetMessage::msg(Message::REQUIRED_FIELD, $field));
 	}
 
 
@@ -78,27 +84,27 @@ class Validation
 	/**
 	 * generateMaxLength
 	 *
-	 * @param  string $column the field whose length we are setting max-length to
+	 * @param  string $field the field whose length we are setting max-length to
 	 * @param  int $length the max allowed length
 	 * @return Validation for the specifications above
 	 */
-	static public function generateMaxLength(string $column, int $length) : Validation
+	static public function generateMaxLength(string $field, int $length) : Validation
 	{
 		
-		$callable = function($record) use ($column, $length) {
+		$callable = function($record) use ($field, $length) {
 
-			if (!isset($record[$column])) {
+			if (!isset($record[$field])) {
 				
 				return true;
 
 			}
 
-			return strlen($record[$column]) <= $length;
+			return strlen($record[$field]) <= $length;
 
 		};
 
 
-		return new Validation($callable, GetMessage::msg(Message::MAX_LENGTH_EXCEEDED, $column, $length));
+		return new Validation($callable, GetMessage::msg(Message::MAX_LENGTH_EXCEEDED, $field, $length));
 	}
 
 
@@ -106,25 +112,25 @@ class Validation
 	/**
 	 * generateValidDate
 	 *
-	 * @param  string $column the date field in the request
+	 * @param  string $field the date field in the request
 	 * @return Validation that ensures that the date complies with the format Env::$dateTimeFormat
 	 */
-	static public function generateValidDate(string $column) : Validation
+	static public function generateValidDate(string $field) : Validation
 	{
 
-		$callable = function($record) use ($column) {
+		$callable = function($record) use ($field) {
 
-			if (!isset($record[$column])) {
+			if (!isset($record[$field])) {
 				
 				return true;
 
 			}
 
-			return date_create_from_format(Env::$dateTimeFormat, $record[$column]);
+			return date_create_from_format(Env::$dateTimeFormat, $record[$field]);
 		};
 
 
-		return new Validation($callable, GetMessage::msg(Message::NOT_VALID_DATE_FORMAT, $column));
+		return new Validation($callable, GetMessage::msg(Message::NOT_VALID_DATE_FORMAT, $field));
 
 	}
 
@@ -134,28 +140,28 @@ class Validation
 	/**
 	 * generateValidRegex
 	 *
-	 * @param  mixed $column the field to be validated against the regex
+	 * @param  mixed $field the field to be validated against the regex
 	 * @param  mixed $regex the regex that should be statisfied
 	 * @return Validation the validation testing the given field for the regex
 	 */
-	static public function generateValidRegex(string $column, string $regex) : Validation
+	static public function generateValidRegex(string $field, string $regex) : Validation
 	{
 
-		$callable = function($record) use ($column, $regex) {
+		$callable = function($record) use ($field, $regex) {
 
-			if (!isset($record[$column])) {
+			if (!isset($record[$field])) {
 				
 				return true;
 
 			}
 
-			return preg_match($regex, $record[$column]);
+			return preg_match($regex, $record[$field]);
 
 		};
 
 		$format = substr($regex, 3, -2);
 
-		return new Validation($callable, GetMessage::msg(Message::NOT_VALID_FORMAT, $column, $format));
+		return new Validation($callable, GetMessage::msg(Message::NOT_VALID_FORMAT, $field, $format));
 
 	}
 
@@ -163,13 +169,13 @@ class Validation
 	/**
 	 * generateValidColor
 	 *
-	 * @param  mixed $column the color field name
+	 * @param  mixed $field the color field name
 	 * @return Validation the validation testing whether the data is a valid hex color
 	 */
-	static public function generateValidColor(string $column) : Validation
+	static public function generateValidColor(string $field) : Validation
 	{
 												//hex color regex taken ready from stack overflow, put seems ok
-		return self::generateValidRegex($column, '/^#([0-9a-fA-F]{3}){1,2}$/');
+		return self::generateValidRegex($field, '/^#([0-9a-fA-F]{3}){1,2}$/');
 
 	}
 
@@ -177,27 +183,27 @@ class Validation
 	/**
 	 * generateInList
 	 *
-	 * @param  mixed $column the column whose value will be tested
+	 * @param  mixed $field the column whose value will be tested
 	 * @param  mixed $alloweValues the list of allowed values
 	 * @return Validation the validation testing that the column's value is contained in the list
 	 */
-	static public function generateInList(string $column, array $alloweValues) : Validation
+	static public function generateInList(string $field, array $alloweValues) : Validation
 	{
 
-		$callable = function($record) use ($column, $alloweValues) {
+		$callable = function($record) use ($field, $alloweValues) {
 
-			if (!isset($record[$column])) {
+			if (!isset($record[$field])) {
 				
 				return true;
 
 			}
 
-			return in_array($record[$column], $alloweValues);
+			return in_array($record[$field], $alloweValues);
 
 		};
 
 
-		return new Validation($callable, GetMessage::msg(Message::NOT_VALID_SELECTION, $column, implode(', ', $alloweValues)));
+		return new Validation($callable, GetMessage::msg(Message::NOT_VALID_SELECTION, $field, implode(', ', $alloweValues)));
 
 	}
 

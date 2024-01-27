@@ -1,22 +1,42 @@
 <?php
 
+/**
+ * a helper class that prepares the error messages
+ */
 class GetMessage
 {
 
-
-	static function msg(string $string, ...$values) 
+	
+	/**
+	 * msg 
+	 * prepares the non-server error messages, i.e. error messages not associated with a server error
+	 *
+	 * @param  string $string
+	 * @param  mixed $values variadic string values
+	 * @return string
+	 */
+	static function msg(string $string, ...$values) : string
 	{
 
 		return sprintf($string, ...$values);
 
 	}
-
-	static function getServerErrorMessage(Throwable $e) 
+	
+	/**
+	 * getServerErrorMessage
+	 * prepares the server error messages, i.e. error messages associated with a server error
+	 * if the Env::$isDeveplopment is set to false only a generic message with be displied as defined in 
+	 * Message::SERVER_ERROR, otherwise if the Env::$isDevelopment is set to true a more complete message will
+	 * be shown
+	 * @param  Throwable $e
+	 * @return string
+	 */
+	static function getServerErrorMessage(Throwable $e) : string 
 	{
-		$development_msg = $e->getMessage()."\nfile:".$e->getFile()."\nline:".$e->getLine()
+		$developmentMsg = $e->getMessage()."\nfile:".$e->getFile()."\nline:".$e->getLine()
 		."\n\n".$e->getTraceAsString();
 
-		return Env::$is_deveplopment ? $development_msg : Message::SERVER_ERROR;
+		return Env::$isDeveplopment ? $developmentMsg : Message::SERVER_ERROR;
 
 	}
 

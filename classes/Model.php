@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Model is the abstract base class used for DB interactions, each class extending the Model class 
+ * represents the interactions with a given database table
+ * the table name is the snake-case version of the Model class name, removing the Model part
+ * for eg. ConstructionStagesModel translates to the costruction_stages table. 
+ * Similarly the fields present inside $allProperties will represent the relevant columns of the table, after
+ * being snake-cased
+ */
 abstract class Model
 {
 
@@ -7,17 +15,50 @@ abstract class Model
 
 	private $allColumnSet;
 
-
+	
+	/**
+	 * represents the list of fields the Model record has
+	 *
+	 * @var array
+	 */
 	public $allProperties = [];
-
+	
+	/**
+	 * represents the primary key of the table associated with the model
+	 *
+	 * @var string
+	 */
 	public $id = 'id';
 
 
-
+	
+	/**
+	 * represents an array of key-values, with keys being particular Model::$allProperties fields
+	 * over which a closure represented by the associated values will be called to get the actual value 
+	 *
+	 * @var array
+	 */
 	protected $overWriteGetValues = [];
+	
 
+
+	/**
+	 * represents an array of default key-values that will be added to an Model::insert request if its keys are not present in the
+	 * provided input
+	 * The keys being particular Model::$allProperties fields associated with a default value represented by the associative value, 
+	 * if the value provided is a closure it will be called on the record being added
+	 *
+	 * @var array
+	 */
 	protected $defaultValues = [];
+	
 
+
+	/**
+	 * represent the validations that insert and update request will have to satisfy
+	 *
+	 * @var array
+	 */
 	protected $validations = [];
 
 
@@ -26,7 +67,13 @@ abstract class Model
 
 	const ALL_OPERATORS = ['>=', '<', '>', '<=', '!='];
 
-
+	
+	/**
+	 * __construct does the initial setup, $allProperties should have been defined before the constructor is called
+	 * over-write the constructor for additional setup, but always do call the parent constructor
+	 *
+	 * @return void
+	 */
 	public function __construct()
 	{
 		$this->allProperties[] = $this->id;
@@ -37,12 +84,25 @@ abstract class Model
 	}
 
 
+	
+	/**
+	 * get
+	 * read records from the database
+	 *
+	 * @param  array $where an associative array of filtering conditions like ['id' => 5]. Multiple conditions are allowed,
+	 * and other than the implicit equality operator, the other operators present in the Model::ALL_OPERATIORS can be 
+	 * joined with a field as a key like 
+	 * for eg. ['endDate >' => '2021-07-17', 'endDate <' => '2024-11-14', 'id !=' => 7]
+	 * @param  ?array $fields represend the columns that will be selected from the database, if left null all columns
+	 * will be selected
+	 * @return array list of associative arrays representing the records read from the database
+	 */
 
-	public function get($where = [], ?array $columns = null): array
+	public function get($where = [], ?array $fields = null): array
 	{
 		$params = [];
 
-		$query = 'select ' . $this->prepareColumns($columns) . ' from "' . $this->tableName . '"' . $this->prepareWhere($where, $params);
+		$query = 'select ' . $this->prepareColumns($fields) . ' from "' . $this->tableName . '"' . $this->prepareWhere($where, $params);
 
 		$data = Database::execQuery($query, $params);
 
@@ -50,7 +110,15 @@ abstract class Model
 	}
 
 
-
+	
+	/**
+	 * getById
+	 * return a single record from the database, represented by the id given as parameter, 
+	 * a RequestError exception will be thrown if no such record is found
+	 *
+	 * @param  mixed $id
+	 * @return array a list containing a single associative array representing the database record
+	 */
 	public function getById(int $id) : array 
 	{
 		$data = $this->get([$this->id => $id]);
@@ -66,7 +134,16 @@ abstract class Model
 	}
 
 
-
+	
+	/**
+	 * update
+	 * updates a database record represented by the provided id, only the fields part of the request will be updated
+	 * a RequestError will be thrown if an empty request is sent (i.e. one without any fields to update) or if the record
+	 * represented by the id parameter is not found
+	 * @param  array $request is an associative array with fields to update
+	 * @param  int $id
+	 * @return array return the updated record
+	 */
 	public function update(array $request, int $id): array
 	{
 
@@ -99,15 +176,31 @@ abstract class Model
 		//return $this->getById($id);
 	}
 
-
-	static function getResourceName (Model $model) 
+	
+	/**
+	 * getResourceName is a static function used to translate a Model class name into a lower-cased string without the model
+	 * part, for eg. ConstructionStagesModel -> constructionstages, mainly used to communicate with the front-end developers
+	 * @param  Model $model
+	 * @return string
+	 */
+	static function getResourceName (Model $model) : string
 	{
 
 		return str_replace('model', '', strtolower(get_class($model)));
 
 	}
 
-
+	
+	/**
+	 * prepareUpdate
+	 * a helper function that prepares the sql string that needs to be executed in the database to achieve the requested update
+	 * and adds the parameters needed for that execution to the params array
+	 *
+	 * @param  array $request the initial update request
+	 * @param  int $id the id of the record to be updated
+	 * @param  array $params the array where new parameters needed for the query execution will be added by the function
+	 * @return string the sql string to be executed
+	 */
 	protected function prepareUpdate(array $request, int $id, array &$params = []): string
 	{
 
@@ -135,7 +228,17 @@ abstract class Model
 
 	}
 
-
+	
+	/**
+	 * prepareInsert
+	 * a helper function that prepares the sql string that will be executed to add the record in the database
+	 * table associated with the model 
+	 * and adds the parameters needed for that execution to the params array
+	 *
+	 * @param  array $request represents the record to be added
+	 * @param  array $params the array where new parameters needed for the query execution will be added by the function
+	 * @return string the sql string to be executed
+	 */
 	protected function prepareInsert(array $request, &$params = []): string 
 	{
 
@@ -165,6 +268,16 @@ abstract class Model
 	}
 
 
+		
+	/**
+	 * deleteById
+	 * deletes a single record from the database table associated with the model, 
+	 * represented by the id provided as parameter
+	 * no error message will be thrown if the record is not found
+	 *
+	 * @param  int $id
+	 * @return void
+	 */
 	public function deleteById(int $id): void
 	{
 
@@ -175,7 +288,17 @@ abstract class Model
 	}
 
 
-
+	
+	/**
+	 * delete
+	 * delete records from the database table associated with the model fullfiling the where condition
+	 * be CAREFULL an empty $where will delete all records from that table
+	 * for a more detailed description of the where condition see the Model::get function with the logic being the same
+	 * as to a Model::get where parameter
+	 *
+	 * @param  mixed $where
+	 * @return void
+	 */
 	public function delete(array $where): void
 	{
 
@@ -188,6 +311,14 @@ abstract class Model
 	}
 
 
+		
+	/**
+	 * insert
+	 * add a record whose values are given by the request array to the database and return back the
+	 * added record
+	 * @param  array $request
+	 * @return array
+	 */
 	public function insert(array $request) : array
 	{
 		
@@ -207,6 +338,14 @@ abstract class Model
 	}
 
 
+		
+	/**
+	 * addDefaultValues
+	 * adds default values to the request array if the keys inside the Model::$defaultValues are not part of the request
+	 *
+	 * @param  array $request
+	 * @return void
+	 */
 	public function addDefaultValues(array &$request) : void
 	{
 
@@ -222,6 +361,16 @@ abstract class Model
 
 	}
 
+		
+	/**
+	 * checkValidations
+	 * check whether the record values represented by the request satisfy the validations associated with the Model.
+	 * If the check fails, a ValidationError with the associated fail-validation messages will be thrown 
+	 * 
+	 * @param  array $request
+	 * @param  ?int $id the id of the record being updated or null if the check is done on a new record
+	 * @return void
+	 */
 	public function checkValidations(array $request, ?int $id = null) 
 	{
 		$error_count = 0;
@@ -253,6 +402,17 @@ abstract class Model
 
 	}
 
+		
+	/**
+	 * ensureColumnExists
+	 * checks whether the column passed as input is present in the Model::$allProperties array (after being snake-cased)
+	 * and throws a ServerError if such is not the case with the given message and code
+	 *
+	 * @param  string $column
+	 * @param  string $msg
+	 * @param  int $code
+	 * @return void
+	 */
 	protected function ensureColumnExists(string $column, string $msg = Message::BAD_COLUMN, int $code = StatusCode::BAD_COLUMN) 
 	{
 			
@@ -263,6 +423,14 @@ abstract class Model
 		}
 	}
 
+		
+	/**
+	 * prepareColumns
+	 * prepares a string with columns passed as input in double quotes and snake-cased
+	 * will return '*' if null is passed instead as a paramter
+	 * @param  ?array $columns
+	 * @return string
+	 */
 	protected function prepareColumns(?array $columns): string
 	{
 
@@ -286,6 +454,15 @@ abstract class Model
 	}
 
 
+		
+	/**
+	 * prepareWhere
+	 * prepares the where... part to be used in select or delete queries
+	 *
+	 * @param  array $where the associative array representing the where filter, see the Model::get for a more detailed explanation
+	 * @param  array $params the array to which additional parameters to be passed to the database execute function are added
+	 * @return string the resulting sql string
+	 */
 	protected function prepareWhere(array $where, ?array &$params): string
 	{
 
@@ -325,7 +502,17 @@ abstract class Model
 	}
 
 
-
+	
+	/**
+	 * translateDBData
+	 * takes as input data read from the database and returns a list of associative arrays whose keys are taken from
+	 * the Model::$allProperties array, the values will in general be taken from the respective (snake-cased) columns of the
+	 * table unless the field has been included in the Model::$overWriteGetValues property as a key, in which case
+	 * an additional closure could be called on the field's value 
+	 *
+	 * @param  array $data list of database records representing the inital values to be used for the new return array
+	 * @return array the resulting new list of associative arrays
+	 */
 	protected function translateDBData(array $data): array
 	{
 		$vars = $this->allProperties;

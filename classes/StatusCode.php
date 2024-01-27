@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * StatusCode a class of constants representing the different http status codes for the App
+ */
 class StatusCode
 {
 

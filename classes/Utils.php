@@ -1,6 +1,9 @@
 <?php
 
 
+/**
+ * Utils a collection of util functions
+ */
 class Utils
 {
 			

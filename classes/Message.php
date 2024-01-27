@@ -1,9 +1,10 @@
 <?php
 
+/**
+ * a class of constants representing the different error messages for the App
+ */
 class Message
 {
-
-	const SUCCESS = 'Ok';
 
 	const VALIDATION_ERROR = 'There are %s error(s) in the request';
 	const REQUIRED_FIELD = 'The field [%s] is required';
