@@ -1,9 +1,16 @@
 <?php
 
+
 class Utils
 {
 			
-	
+		
+	/**
+	 * snakeCase
+	 *
+	 * @param  string|array $str the string or array of strings to be converted to snake_case
+	 * @return string|array the resulting string or array of strings
+	 */
 	static function snakeCase(array|string $str) : string|array 
 	{
 		
@@ -31,6 +38,13 @@ class Utils
 
 	}
 
+		
+	/**
+	 * dd echo as json (dump) and die
+	 *
+	 * @param  mixed $data the variadic to be json echo-ed
+	 * @return void
+	 */
 	static function dd(...$data) 
 	{
 		foreach ($data as $row) {
@@ -43,15 +57,28 @@ class Utils
 		die();
 
 	}
-
-	static function vd(...$data) 
+	
+	
+	/**
+	 * vd var_dump and die
+	 *
+	 * @param  mixed $data the variadic to be var_dump-ed
+	 * @return void
+	 */
+	static function vd(...$data) : void
 	{
 		var_dump(...$data);
 
 		die();
 
 	}
-
+	
+	/**
+	 * captalize
+	 *
+	 * @param  string $str the string whose first character will be capitalized
+	 * @return string the resulting string
+	 */
 	static function captalize(string $str) : string 
 	{
 		$chars = mb_str_split($str);
@@ -59,14 +86,30 @@ class Utils
 		return implode('', $chars);
 	}
 
-	
-	static function echoJson($data) 
+		
+	/**
+	 * echoJson echo the json encoded data
+	 *
+	 * @param  mixed $data 
+	 * @return void
+	 */
+	static function echoJson($data) : void
 	{
 		echo json_encode($data, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT);	
 	}
 
-
-	static function standartDateTime(?string $datetime) 
+	
+	/**
+	 * standartDateTime return a strandart formated datetime string, if the provided
+	 * string is not of the standart format (as defined in the Env::$dateTimeFormat) 
+	 * the strtotime function will be used to convert it to datetime before returning
+	 * the save format back
+	 * null will be returned for a null input
+	 * 
+	 * @param  ?string $datetime the datetime string whose format will be checked
+	 * @return ?string
+	 */
+	static function standartDateTime(?string $datetime) : string
 	{
 
 
@@ -84,8 +127,19 @@ class Utils
 
 	}
 
-
-	static function dateDiffInHours(?string $endDateTime, ?string $startDateTime, string $dateFormat = null) : ?int
+	
+	/**
+	 * dateDiffInHours returns the difference in hours between two dates, only full days and hours 
+	 * are included, minutes and seconds in the difference are ignored
+	 * null will be returned if either $endDateTime or $startDateTime is null
+	 *
+	 * @param  ?string $endDateTime
+	 * @param  ?string $startDateTime
+	 * @param  ?string $dateFormat the date-format the $endDateTime and $startDateTime are of, if left null
+	 * the Env::$dateTimeFormat will be used
+	 * @return int
+	 */
+	static function dateDiffInHours(?string $endDateTime, ?string $startDateTime, ?string $dateFormat = null) : ?int
 	{
 		if ($endDateTime === null || $startDateTime === null) {
 			

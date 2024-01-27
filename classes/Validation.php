@@ -106,8 +106,8 @@ class Validation
 	/**
 	 * generateValidDate
 	 *
-	 * @param  mixed $column
-	 * @return Validation
+	 * @param  string $column the date field in the request
+	 * @return Validation that ensures that the date complies with the format Env::$dateTimeFormat
 	 */
 	static public function generateValidDate(string $column) : Validation
 	{
@@ -129,6 +129,15 @@ class Validation
 	}
 
 
+
+	
+	/**
+	 * generateValidRegex
+	 *
+	 * @param  mixed $column the field to be validated against the regex
+	 * @param  mixed $regex the regex that should be statisfied
+	 * @return Validation the validation testing the given field for the regex
+	 */
 	static public function generateValidRegex(string $column, string $regex) : Validation
 	{
 
@@ -150,7 +159,13 @@ class Validation
 
 	}
 
-
+	
+	/**
+	 * generateValidColor
+	 *
+	 * @param  mixed $column the color field name
+	 * @return Validation the validation testing whether the data is a valid hex color
+	 */
 	static public function generateValidColor(string $column) : Validation
 	{
 												//hex color regex taken ready from stack overflow, put seems ok
@@ -158,7 +173,14 @@ class Validation
 
 	}
 
-
+	
+	/**
+	 * generateInList
+	 *
+	 * @param  mixed $column the column whose value will be tested
+	 * @param  mixed $alloweValues the list of allowed values
+	 * @return Validation the validation testing that the column's value is contained in the list
+	 */
 	static public function generateInList(string $column, array $alloweValues) : Validation
 	{
 
