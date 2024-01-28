@@ -106,13 +106,13 @@ class Utils
 	 * standartDateTime return a strandart formated datetime string, if the provided
 	 * string is not of the standart format (as defined in the Env::$dateTimeFormat) 
 	 * the strtotime function will be used to convert it to datetime before returning
-	 * the save format back
+	 * the same format back
 	 * null will be returned for a null input
 	 * 
 	 * @param  ?string $datetime the datetime string whose format will be checked
 	 * @return ?string
 	 */
-	static function standartDateTime(?string $datetime) : string
+	static function standartDateTime(?string $datetime) : ?string
 	{
 
 

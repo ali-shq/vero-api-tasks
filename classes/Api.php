@@ -47,10 +47,6 @@ class Api
 	{
 		try {
 
-			header('Content-Type: application/json; charset=utf-8');
-
-			Database::init();
-			
 			
 			$uri = strtolower(trim($_SERVER['PATH_INFO'] ?? $_SERVER['REQUEST_URI'], '/'));
 			
@@ -59,6 +55,11 @@ class Api
 			$request = in_array($httpVerb, Controller::WITH_DATA_VERBS) ? json_decode(file_get_contents('php://input'), true) : [];
 
 			
+			header('Content-Type: application/json; charset=utf-8');
+
+			Database::init();
+			
+
 			foreach (self::getAllRoutes() as $controller => $route) {
 
 				if (strtolower($route) == $uri) {

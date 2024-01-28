@@ -65,7 +65,7 @@ abstract class Controller
 		return $this->model->update($request, $id);
 
 	}
-	
+
 
 	protected function validateIdWasSent($id) : void
 	{
@@ -125,11 +125,11 @@ abstract class Controller
 	public function __construct(protected ?Model $model = null)
 	{
 
-		$model_class = str_replace('Controller', 'Model', get_class($this));
+		$modelClass = str_replace('Controller', 'Model', get_class($this));
 
-		if (class_exists($model_class)) {
+		if (class_exists($modelClass)) {
 
-			$this->model = new $model_class();
+			$this->model = new $modelClass();
 
 		}
 	}
