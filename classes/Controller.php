@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Controller the base abstract class that manages the http request
+ */
 abstract class Controller
 {
 
@@ -23,7 +26,13 @@ abstract class Controller
 
 
 
-
+	
+	/**
+	 * get
+	 * manages the get request
+	 * @param  array $request only the model->id will be a valid filter by default
+	 * @return array a list with records
+	 */
 	protected function get(array $request) : array
 	{
 		$id = $request[$this->model->id] ?? null;
@@ -37,13 +46,25 @@ abstract class Controller
 		return $this->model->get();
 	}
 
-
+	
+	/**
+	 * add
+	 * manages the post request
+	 * @param  array $request
+	 * @return array a list containing only the the newly added record
+	 */
 	protected function add(array $request) : array 
 	{
 		return $this->model->insert($request);
 	}
 
-
+	
+	/**
+	 * delete
+	 * manages the delete request
+	 * @param  array $request
+	 * @return void
+	 */
 	protected function delete($request) 
 	{
 		$id = $request[$this->model->id] ?? null;
@@ -55,7 +76,13 @@ abstract class Controller
 		return [];
 	}
 
-
+	
+	/**
+	 * edit
+	 * manages the patch request
+	 * @param  array $request
+	 * @return array a list with only the updated record, with all fields
+	 */
 	protected function edit(array $request) : array 
 	{
 		$id = $request[$this->model->id] ?? null;
@@ -66,7 +93,14 @@ abstract class Controller
 
 	}
 
-
+	
+	/**
+	 * validateIdWasSent
+	 * check whether an id was present in the url, throws a RequestError if not
+	 * will be used for methods like patch and delete that require an id
+	 * @param  mixed $id
+	 * @return void
+	 */
 	protected function validateIdWasSent($id) : void
 	{
 		if (!isset($id)) {
@@ -76,8 +110,17 @@ abstract class Controller
 		}
 
 	}
-
-	public function getResponse($httpVerb, $request, $key = null) : void
+	
+	/**
+	 * getResponse
+	 * provide the api's response for the received request as a json echo
+	 * for the response's data one of the add, edit, delete, or get methods will be called
+	 * @param  string $httpVerb the http method
+	 * @param  array $request the body of the request sent
+	 * @param  mixed $key the value after the main route, generally the id
+	 * @return void
+	 */
+	public function getResponse(string $httpVerb, array $request, $key = null) : void
 	{
 		try {
 
@@ -91,7 +134,7 @@ abstract class Controller
 
 			if (isset($key)) {
 
-				$request[$this->model->id] = $key;
+				$request[$this->model?->id] = $key;
 
 			}
 
@@ -121,13 +164,19 @@ abstract class Controller
 		Utils::echoJson($response);
 	}
 
-
+	
+	/**
+	 * __construct
+	 *
+	 * @param  ?Model $model
+	 * @return void
+	 */
 	public function __construct(protected ?Model $model = null)
 	{
 
 		$modelClass = str_replace('Controller', 'Model', get_class($this));
 
-		if (class_exists($modelClass)) {
+		if (!$model && class_exists($modelClass)) {
 
 			$this->model = new $modelClass();
 

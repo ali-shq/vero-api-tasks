@@ -1,10 +1,19 @@
 <?php
 
+/**
+ * ConstructionStagesController the controller class for the construction stages
+ */
 class ConstructionStagesController extends Controller
 {
 
-
-    public function delete($request) 
+    
+    /**
+     * delete overwrites the default delete method to instead do an updated with DELETED status
+     * and returns back the "deleted" record
+     * @param  array $request
+     * @return array
+     */
+    public function delete($request) : array
     {
 
         $request['status'] = 'DELETED';
@@ -14,17 +23,29 @@ class ConstructionStagesController extends Controller
     }
 
 
-
-    public function edit($request) : array
+    
+    /**
+     * edit overwrites the default edit method only by adding the calculated duration
+     *
+     * @param  array $request
+     * @return array
+     */
+    public function edit(array $request) : array
     {
-        $this->updateDurationOnEdit($request);
+        $this->addDurationOnEdit($request);
 
         return parent::edit($request);
     }
 
 
-
-    public function add($request) : array
+    
+    /**
+     * add overwrites the default Controller::add method to add the calculated duration into the request
+     *
+     * @param  array $request
+     * @return array
+     */
+    public function add(array $request) : array
     {
         $this->model->addDefaultValues($request);
 
@@ -36,14 +57,23 @@ class ConstructionStagesController extends Controller
     }
 
 
-
-    private function updateDurationOnEdit(&$request) 
+    
+    /**
+     * addDurationOnEdit helper method that adds the duration key with the new value to the request array
+     * unsets the key if the duration should have not changed given the request 
+     *
+     * @param  array $request
+     * @return void
+     */
+    private function addDurationOnEdit(array &$request) : void
     {
         $durationAffectingFields = array_flip(['startDate', 'endDate', 'durationUnit']);
 
         $durationAffectingRequest = array_intersect_key($request, $durationAffectingFields);
 
         if ($durationAffectingRequest == []) {
+
+            unset($request['duration']);
 
             return;
 
@@ -60,8 +90,14 @@ class ConstructionStagesController extends Controller
     }
 
 
-
-    private function calculateDuration($request) : ?float
+    
+    /**
+     * calculateDuration calculates the value of the duration, given startDate and endDate and the durationUnit
+     *
+     * @param  array $request
+     * @return float
+     */
+    private function calculateDuration(array $request) : ?float
     {
         
         $diffInHours = Utils::dateDiffInHours($request['endDate'] ?? null, $request['startDate']);

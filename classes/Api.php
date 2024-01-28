@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Api provides the general rounting functionality and act as the outer most layer try-catching any error not caught
+ * by the other layers
+ */
 class Api
 {
 
@@ -9,8 +13,8 @@ class Api
 	const ROUTES_FOLDER = 'classes/Controllers';
 
 	const WILD_CARDS = [
-		//':any' => '([^/]+)',
-		':num' => '/([0-9]+)?',
+	//	':num' => '/([0-9]+)?',
+		':any' => '/([^/]+)?',		
 	];
 
 
@@ -43,12 +47,13 @@ class Api
 
 	} 
 	
+	
 	static function route()
 	{
 		try {
 
 			
-			$uri = strtolower(trim($_SERVER['PATH_INFO'] ?? $_SERVER['REQUEST_URI'], '/'));
+			$uri = trim($_SERVER['PATH_INFO'] ?? $_SERVER['REQUEST_URI'], '/');
 			
 			$httpVerb = isset($_SERVER['REQUEST_METHOD']) ? strtolower($_SERVER['REQUEST_METHOD']) : 'cli';
 	
@@ -62,7 +67,7 @@ class Api
 
 			foreach (self::getAllRoutes() as $controller => $route) {
 
-				if (strtolower($route) == $uri) {
+				if (strtolower($route) == strtolower($uri)) {
 
 					$controller = new $controller();
 

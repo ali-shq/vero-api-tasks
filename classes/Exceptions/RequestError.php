@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * RequestError is intended for the client app due errors, i.e. errors linked with the request but that are not
+ * validation errors, like requesting a non-existing route
+ */
 class RequestError extends ApplicationError
 {
 

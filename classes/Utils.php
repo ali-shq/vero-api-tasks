@@ -163,4 +163,20 @@ class Utils
 		return ($diff->days * 24 + $diff->h);
 	}
 
+	
+	/**
+	 * getFolderClasses
+	 * returns an array with the classes found in a folder by scanning the folder and removing the .php extension from
+	 * each file name present in the folder
+	 * @param  string $folderPath
+	 * @return array
+	 */
+	static function getFolderClasses(string $folderPath) : array
+	{
+		
+		return array_filter(array_map(fn($fileName) => str_replace('.php', '', $fileName), 
+							scandir($folderPath)), fn($class) => class_exists($class));
+
+	}
+
 }

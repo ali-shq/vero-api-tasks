@@ -119,7 +119,7 @@ abstract class Model
 	 * @param  mixed $id
 	 * @return array a list containing a single associative array representing the database record
 	 */
-	public function getById(int $id) : array 
+	public function getById($id) : array 
 	{
 		$data = $this->get([$this->id => $id]);
 
@@ -137,14 +137,14 @@ abstract class Model
 	
 	/**
 	 * update
-	 * updates a database record represented by the provided id, only the fields part of the request will be updated
+	 * updates a database record represented by the provided id, only the fields that are part of the request will be updated
 	 * a RequestError will be thrown if an empty request is sent (i.e. one without any fields to update) or if the record
 	 * represented by the id parameter is not found
 	 * @param  array $request is an associative array with fields to update
-	 * @param  int $id
+	 * @param  mixed $id
 	 * @return array return the updated record
 	 */
-	public function update(array $request, int $id): array
+	public function update(array $request, $id): array
 	{
 
 		unset($request[$this->id]);
@@ -197,11 +197,11 @@ abstract class Model
 	 * and adds the parameters needed for that execution to the params array
 	 *
 	 * @param  array $request the initial update request
-	 * @param  int $id the id of the record to be updated
+	 * @param  mixed $id the id of the record to be updated
 	 * @param  array $params the array where new parameters needed for the query execution will be added by the function
 	 * @return string the sql string to be executed
 	 */
-	protected function prepareUpdate(array $request, int $id, array &$params = []): string
+	protected function prepareUpdate(array $request, $id, array &$params = []): string
 	{
 
 		$query = 'update "'.$this->tableName.'" set ';
@@ -275,10 +275,10 @@ abstract class Model
 	 * represented by the id provided as parameter
 	 * no error message will be thrown if the record is not found
 	 *
-	 * @param  int $id
+	 * @param  mixed $id
 	 * @return void
 	 */
-	public function deleteById(int $id): void
+	public function deleteById($id): void
 	{
 
 		$where = [$this->id => $id];
@@ -368,10 +368,10 @@ abstract class Model
 	 * If the check fails, a ValidationError with the associated fail-validation messages will be thrown 
 	 * 
 	 * @param  array $request
-	 * @param  ?int $id the id of the record being updated or null if the check is done on a new record
+	 * @param  mixed $id the id of the record being updated or null if the check is done on a new record
 	 * @return void
 	 */
-	public function checkValidations(array $request, ?int $id = null) 
+	public function checkValidations(array $request, $id = null) 
 	{
 		$error_count = 0;
 

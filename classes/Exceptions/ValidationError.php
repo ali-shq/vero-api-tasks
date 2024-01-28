@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * ValidationError the exception type that will be thrown when a record does not pass it's model's validations
+ */
 class ValidationError extends ApplicationError
 {
 

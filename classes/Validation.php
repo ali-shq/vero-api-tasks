@@ -3,8 +3,9 @@
 /**
  * Validation a class used to validate records, by a custom provided closure
  * in case of failure a custom message is given back.
- * The class contains a number of static functions also that generate pre-defined Validation objects
- * for common use cases like required field or regex validations
+ * The message itself can be a Closure called on the record or a predefined string	 
+ * The class contains also a number of static functions that generate 
+ * pre-defined Validation objects for common use cases like required field or regex validations
  */
 class Validation
 {
@@ -24,13 +25,12 @@ class Validation
 	 * calling of the validation, the validate Closure is called on the record
 	 * if no error is found null is returned, otherwise a string with the error
 	 * message is returned.
-	 * The message itself can be a Closure called on the record or a predefined string
 	 *
 	 * @param  array $record
-	 * @param  int $id
+	 * @param  mixed $id
 	 * @return string|null
 	 */
-	public function __invoke(array $record, ?int $id = null) : ?string
+	public function __invoke(array $record, $id = null) : ?string
 	{
 		$validate = $this->validate;
 

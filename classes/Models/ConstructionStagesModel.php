@@ -1,8 +1,17 @@
 <?php
 
+/**
+ * ConstructionStagesModel the model class for the construction stages
+ */
 class ConstructionStagesModel extends Model
 {
 
+	
+	/**
+	 * __construct does the setup of the ConstructionStagesModel
+	 * from defining the "properties" to adding default values and the needed validations
+	 * @return void
+	 */
 	public function __construct()
 	{
 		$addProperties = [	
@@ -55,8 +64,15 @@ class ConstructionStagesModel extends Model
 		
 	}
 
-
-	private function generateEndDateValidation() 
+	
+	/**
+	 * generateEndDateValidation
+	 * 
+	 * returns a Validation instance that check's whether endDate is greater than startDate
+	 *
+	 * @return Validation
+	 */
+	private function generateEndDateValidation() : Validation
 	{
 		$validEndDate = function($request) {
 			return	!isset($request['endDate']) || !isset($request['startDate']) 		  ||

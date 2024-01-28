@@ -4,8 +4,14 @@ class Autoloader
 {
 	const FOLDERS = ['classes', 'classes/Exceptions', 'classes/Controllers', 'classes/Models'];
 
-
-	public static function register()
+	
+	/**
+	 * register scan the Autoloader::FOLDERS for the requested class, ClassName.php is the file searched
+	 * for a ClassName class
+	 *
+	 * @return void
+	 */
+	public static function register() : void
 	{
 
 		spl_autoload_register(function ($class) {
