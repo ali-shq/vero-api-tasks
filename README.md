@@ -1,3 +1,16 @@
+
+## Implementation:
+
+Almost all of the existing code was changed. 
+Php version 8 was used.
+For the generating documentation part, it is a documentation of the API's classes and the output is in pure text.
+The url for the documentation is /docs.
+There is a class named `Env`, with a static property `$isDevelopment`, currently set to `false`, if it were set to `true` the generated docs will include the private and protected methods as well.
+
+
+
+## Original README
+
 Hello dear API creator!
 
 This repository is a playground for your submission.
