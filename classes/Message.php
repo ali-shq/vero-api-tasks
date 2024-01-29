@@ -6,7 +6,7 @@
 class Message
 {
 
-	const VALIDATION_ERROR = 'There are %s error(s) in the request';
+	const VALIDATION_ERROR = 'There is/are %s error(s) in the request';
 	const REQUIRED_FIELD = 'The field [%s] is required';
 	const MAX_LENGTH_EXCEEDED = 'The field [%s] has max length of %s';
 	const NOT_VALID_FORMAT = 'The field [%s] does not match the expected format: %s';

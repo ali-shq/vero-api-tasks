@@ -20,7 +20,14 @@ class Api
 
 	static $allRoutes = null;
 
-
+	
+	/**
+	 * getAllRoutes
+	 * 
+	 * helper method that generates routes out the files found in the controller folder
+	 *
+	 * @return array
+	 */
 	static private function getAllRoutes() : array 
 	{
 		if (isset(self::$allRoutes)) {
@@ -47,7 +54,11 @@ class Api
 
 	} 
 	
-	
+		
+	/**
+	 * routes the request to the appropriate controller
+	 * @return void
+	 */
 	static function route()
 	{
 		try {
