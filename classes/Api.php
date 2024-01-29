@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Api provides the general rounting functionality and act as the outer most layer try-catching any error not caught
+ * Api provides the general rounting functionality and acts as the outer most layer try-catching any error not caught
  * by the other layers
  */
 class Api

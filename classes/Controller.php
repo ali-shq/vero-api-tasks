@@ -25,6 +25,7 @@ abstract class Controller
 						];
 
 
+	protected $statusCodeOnSuccess = StatusCode::SUCCESS;
 
 	
 	/**
@@ -55,6 +56,8 @@ abstract class Controller
 	 */
 	protected function add(array $request) : array 
 	{
+		$this->statusCodeOnSuccess = StatusCode::SUCCESSFULLY_ADDED;
+
 		return $this->model->insert($request);
 	}
 
@@ -69,7 +72,7 @@ abstract class Controller
 	{
 		$id = $request[$this->model->id] ?? null;
 
-		$this->validateIdWasSent($id);
+		$this->ensureIdWasSent($id);
 
 		$this->model->deleteById($id);
 
@@ -87,7 +90,7 @@ abstract class Controller
 	{
 		$id = $request[$this->model->id] ?? null;
 
-		$this->validateIdWasSent($id);
+		$this->ensureIdWasSent($id);
 
 		return $this->model->update($request, $id);
 
@@ -95,13 +98,13 @@ abstract class Controller
 
 	
 	/**
-	 * validateIdWasSent
+	 * ensureIdWasSent
 	 * check whether an id was present in the url, throws a RequestError if not
 	 * will be used for methods like patch and delete that require an id
 	 * @param  mixed $id
 	 * @return void
 	 */
-	protected function validateIdWasSent($id) : void
+	protected function ensureIdWasSent($id) : void
 	{
 		if (!isset($id)) {
 
@@ -139,6 +142,8 @@ abstract class Controller
 			}
 
 			$response = new Response($this->$method($request));
+
+			http_response_code($this->statusCodeOnSuccess);
 
 		} catch (ServerError $e) {
 
