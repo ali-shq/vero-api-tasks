@@ -32,6 +32,12 @@ class ConstructionStagesController extends Controller
      */
     public function edit(array $request) : array
     {
+        $id = $request[$this->model->id] ?? null;
+
+        $this->ensureIdWasSent($id);
+
+        $this->model->checkValidations($request, $id);
+
         $this->addDurationOnEdit($request);
 
         return parent::edit($request);
@@ -79,7 +85,7 @@ class ConstructionStagesController extends Controller
 
         }
 
-        $id = $request[$this->model->id] ?? null;
+        $id = $request[$this->model->id];
 
         $oldData = $this->model->getById($id)[0];
 

@@ -106,7 +106,8 @@ abstract class Controller
 	 */
 	protected function ensureIdWasSent($id) : void
 	{
-		if (!isset($id)) {
+
+		if (!isset($id) || $id === '') {
 
 			throw new RequestError(Message::NOT_FOUND_ROUTE, StatusCode::NOT_FOUND_ERROR);
 			
@@ -134,6 +135,10 @@ abstract class Controller
 				throw new ServerError(GetMessage::msg(Message::NOT_FOUND_METHOD, $httpVerb, __CLASS__));
 
 			}
+
+			//the id can only be sent as part of the url for the patch/put methods
+			//any id sent as part of the request body will be ignored
+			unset($request[$this->model->id ?? '']);
 
 			if (isset($key)) {
 
